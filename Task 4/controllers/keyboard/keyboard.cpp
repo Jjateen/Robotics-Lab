@@ -20,14 +20,13 @@ int main(int argc, char **argv) {
   }
   Motor *lr;
   lr=robot->getMotor("linear");
-  
   Motor *rm;
   rm=robot->getMotor("rm");
   
   Camera *cm;
   cm=robot->getCamera("camcam");
   cm->enable(TIME_STEP);
-  
+  cm->recognitionEnable(TIME_STEP);
   Motor *wheels[4];
   char wheels_names[4][8] = {"wheel1", "wheel2", "wheel3", "wheel4"};
   for (int i = 0; i < 4; i++) {
