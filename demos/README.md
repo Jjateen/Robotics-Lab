@@ -1,5 +1,5 @@
 ```
 pip install pygame
 ```
-![hexapod](./demo 1.png)
-![gantry](./demo 2.png)
+![hexapod](./demo%201.png)
+![gantry](./demo%202.png)
