@@ -5,5 +5,5 @@ sceneTreePerspectives: 000000ff00000001000000030000001e000002ad000000fa010000000
 maximizedDockId: -1
 centralWidgetVisible: 1
 orthographicViewHeight: 1
-textFiles: 1 "controllers/hexapod/hexapod.c" "controllers/gamepad/gamepad.py"
+textFiles: 1 "../../../../../Users/jjate/OneDrive/Desktop/Robotics Lab/demos/controllers/hexapod/hexapod.c" "../../../../../Users/jjate/OneDrive/Desktop/Robotics Lab/demos/controllers/gamepad/gamepad.py"
 consoles: Console:All:All
