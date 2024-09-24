@@ -57,8 +57,8 @@ pos_knee = [
 ]
 
 # Custom lists for alternate tripod movement in turning
-# Left turn hip motor positions
-pos_hip_left_turn = [
+# Right turn hip motor positions
+pos_hip_right_turn = [
     [FRONT, FRONT, BACK, -BACK, -FRONT, -FRONT],  # State 0
     [FRONT, FRONT, BACK, -BACK, -FRONT, -FRONT],  # State 1
     [BACK, BACK, FRONT, -FRONT, -BACK, -BACK],    # State 2
@@ -67,8 +67,8 @@ pos_hip_left_turn = [
     [BACK, BACK, FRONT, -FRONT, -BACK, -BACK],    # State 5
 ]
 
-# Right turn hip motor positions
-pos_hip_right_turn = [
+# Left turn hip motor positions
+pos_hip_left_turn = [
     [BACK, BACK, FRONT, -FRONT, -BACK, -BACK],    # State 0
     [BACK, BACK, FRONT, -FRONT, -BACK, -BACK],    # State 1
     [FRONT, FRONT, BACK, -BACK, -FRONT, -FRONT],  # State 2
