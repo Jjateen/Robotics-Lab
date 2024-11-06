@@ -1,62 +1,167 @@
 ![Task2](./Task%202.png)
 
-This code implements a reinforcement learning controller for a Cartpole robot simulation in Webots, utilizing Proximal Policy Optimization (PPO) for training the agent to balance a pole on a moving cart. Here’s a breakdown of each component and the training progression:
+The code you provided is a reinforcement learning (RL) controller for a cart-pole balancing robot in Webots, leveraging Proximal Policy Optimization (PPO) for training an agent. Here’s a detailed breakdown of the code:
 
-### Class and Environment Setup
+### 1. Imports and Environment Setup
+```python
+from deepbots.supervisor.controllers.robot_supervisor_env import RobotSupervisorEnv
+from utilities import normalize_to_range
+from PPO_agent import PPOAgent, Transition
+from gym.spaces import Box, Discrete
+import numpy as np
+```
 
-1. **Imports and CartpoleRobot Class Definition**:
-   - The code imports necessary modules, including `RobotSupervisorEnv` from DeepBots, which provides a base environment class for robot simulation.
-   - The `CartpoleRobot` class is defined by inheriting `RobotSupervisorEnv`. It initializes observation and action spaces using Gym's `Box` and `Discrete` spaces, respectively.
+The script uses the `deepbots` library, which provides utilities for integrating reinforcement learning with Webots. It uses `normalize_to_range` from the `utilities` module to scale values, and imports `PPOAgent` and `Transition` from a custom PPO implementation. `gym.spaces` is used to define observation and action spaces.
 
-2. **Observation Space**:
-   - The observation space consists of four values: 
-     - Cart position on the x-axis (normalized to [-1.0, 1.0])
-     - Cart velocity on the x-axis
-     - Pole angle relative to vertical
-     - Angular velocity of the pole endpoint.
-   - These values help the agent determine the current state of the cartpole system.
+### 2. `CartpoleRobot` Class Initialization
+```python
+class CartpoleRobot(RobotSupervisorEnv):
+    def __init__(self):
+        super().__init__()
+        self.observation_space = Box(low=np.array([-0.4, -np.inf, -1.3, -np.inf]),
+                                     high=np.array([0.4, np.inf, 1.3, np.inf]),
+                                     dtype=np.float64)
+        self.action_space = Discrete(2)
+```
 
-3. **Action Space**:
-   - The action space is `Discrete(2)`, meaning the agent has two actions: move the cart left or right.
+- **`CartpoleRobot` Class**: Extends `RobotSupervisorEnv` to interact with Webots.
+- **`observation_space`**: Defines a continuous observation space where the robot observes four values:
+    - Cart’s x-position, x-velocity.
+    - Pole’s angle, and angular velocity.
+- **`action_space`**: Discrete action space with two actions (left or right force applied to the cart).
 
-4. **Sensors and Motors**:
-   - The code initializes a position sensor for pole angle detection and defines four wheel motors. These motors are controlled to maintain the balance of the pole.
+### 3. Device Setup
+```python
+self.robot = self.getSelf()
+self.position_sensor = self.getDevice("polePosSensor")
+self.position_sensor.enable(self.timestep)
+self.pole_endpoint = self.getFromDef("POLE_ENDPOINT")
+self.wheels = []
+for wheel_name in ['wheel1', 'wheel2', 'wheel3', 'wheel4']:
+    wheel = self.getDevice(wheel_name)
+    wheel.setPosition(float('inf'))
+    wheel.setVelocity(0.0)
+    self.wheels.append(wheel)
+self.steps_per_episode = 200
+self.episode_score = 0
+self.episode_score_list = []
+```
 
-5. **Reward Function and Episode Termination**:
-   - A constant reward of +1 is given for each timestep the pole remains balanced.
-   - The episode ends when:
-     - The pole angle deviates by more than 15 degrees from vertical.
-     - The cart position goes beyond a set threshold on the x-axis.
-     - The accumulated episode score exceeds 195, signaling the task's success.
+- **Devices**: Configures Webots devices, including a position sensor to monitor the pole angle and wheels to control cart movement.
+- **Steps and Scores**: `steps_per_episode` caps each episode at 200 steps, and `episode_score_list` stores scores for performance tracking.
 
-### Agent Training
+### 4. Observation and Normalization
+```python
+def get_observations(self):
+    cart_position = normalize_to_range(self.robot.getPosition()[0], -0.4, 0.4, -1.0, 1.0)
+    cart_velocity = normalize_to_range(self.robot.getVelocity()[0], -0.2, 0.2, -1.0, 1.0, clip=True)
+    pole_angle = normalize_to_range(self.position_sensor.getValue(), -0.23, 0.23, -1.0, 1.0, clip=True)
+    endpoint_velocity = normalize_to_range(self.pole_endpoint.getVelocity()[4], -1.5, 1.5, -1.0, 1.0, clip=True)
+    return [cart_position, cart_velocity, pole_angle, endpoint_velocity]
+```
 
-6. **Training Loop**:
-   - A PPO agent is created with the environment's observation and action space details.
-   - The training loop initializes `solved` to `False` and an episode counter (`episode_count`), iterating until either the agent solves the environment or reaches the episode limit (2000).
+The `get_observations` method normalizes each component to a range of -1 to 1:
+- **Cart Position**: Clipped between -0.4 and 0.4 on the x-axis.
+- **Cart Velocity**: Velocity on the x-axis is capped within -0.2 and 0.2.
+- **Pole Angle**: Constrained within -0.23 and 0.23 radians (about ±13.18 degrees).
+- **Endpoint Velocity**: Angular velocity of the pole, limited to ±1.5.
 
-7. **Episode Loop**:
-   - For each episode, the environment is reset, and the agent begins interacting with it.
-   - At each timestep:
-     - The agent selects an action based on the current observation.
-     - The environment updates based on the selected action, returning the new state, reward, and done status.
-     - A transition object, containing the current state, action, action probability, reward, and new state, is stored in the agent's memory.
-     - If the episode ends, the episode score is appended to the score list, and the agent trains on the collected transitions.
+### 5. Reward and Termination Conditions
+```python
+def get_reward(self, action=None):
+    return 1
+```
 
-8. **Task Solving Condition**:
-   - After each episode, the environment checks if the task has been solved by evaluating the average score of the last 100 episodes.
-   - If the average score is above 195, the task is considered solved.
+- **Reward**: Constant reward of +1 per step as long as the episode continues, encouraging the agent to keep the pole balanced.
 
-### Output and Results
+```python
+def is_done(self):
+    if self.episode_score > 195.0:
+        return True
+    pole_angle = round(self.position_sensor.getValue(), 2)
+    if abs(pole_angle) > 0.261799388:
+        return True
+    cart_position = round(self.robot.getPosition()[0], 2)
+    if abs(cart_position) > 0.39:
+        return True
+    return False
+```
 
-- The code prints each episode’s score during training. By episode 907, the agent consistently achieves a score of 196, indicating it has learned to balance the pole.
-- **Errors**: Several Webots-related errors appear, indicating missing proto declarations (e.g., for `TexturedBackground`, `RectangleArena`). These errors are unrelated to the RL training and pertain to Webots' environment setup.
+- **Termination**:
+    - If the episode score surpasses 195, the episode ends.
+    - If the pole angle exceeds ±15 degrees, or the cart position exceeds ±0.39 on the x-axis, the episode also ends.
 
-### Key Points in Execution and Terminal Output
+```python
+def solved(self):
+    if len(self.episode_score_list) > 100:
+        if np.mean(self.episode_score_list[-100:]) > 195.0:
+            return True
+    return False
+```
 
-1. **Early Episodes**: Initial episodes score low due to the agent’s random exploration in action selection.
-2. **Learning Progression**: Scores gradually increase as the agent refines its policy through PPO.
-3. **Achieving Consistent Performance**: By episode 907, the agent stabilizes at a score near 196, signifying it has effectively learned to balance the pole on the cart.
-4. **Deployment for Testing**: After solving the task, the agent is deployed in testing mode where it selects the maximum probable action rather than sampling, achieving consistent balancing.
+- **Solved Condition**: The environment is considered solved if the average score of the last 100 episodes exceeds 195, indicating stable balancing.
 
-This code effectively demonstrates the implementation of a reinforcement learning model to control a robotic cartpole system in Webots, achieving a stable balancing solution through continuous interaction and learning.
+### 6. Action Application
+```python
+def apply_action(self, action):
+    action = int(action[0])
+    motor_speed = 5.0 if action == 0 else -5.0
+    for i in range(len(self.wheels)):
+        self.wheels[i].setPosition(float('inf'))
+        self.wheels[i].setVelocity(motor_speed)
+```
+
+- **Action Mapping**: Applies a positive or negative speed to the wheels based on the chosen action, driving the cart left or right.
+
+### 7. Training Loop
+```python
+env = CartpoleRobot()
+agent = PPOAgent(number_of_inputs=env.observation_space.shape[0], number_of_actor_outputs=env.action_space.n)
+solved = False
+episode_count = 0
+episode_limit = 2000
+while not solved and episode_count < episode_limit:
+    observation = env.reset()
+    env.episode_score = 0
+    for step in range(env.steps_per_episode):
+        selected_action, action_prob = agent.work(observation, type_="selectAction")
+        new_observation, reward, done, info = env.step([selected_action])
+        trans = Transition(observation, selected_action, action_prob, reward, new_observation)
+        agent.store_transition(trans)
+        if done:
+            env.episode_score_list.append(env.episode_score)
+            agent.train_step(batch_size=step + 1)
+            solved = env.solved()
+            break
+        env.episode_score += reward
+        observation = new_observation
+    print("Episode #", episode_count, "score:", env.episode_score)
+    episode_count += 1
+```
+
+- **Training Loop**: 
+    - The agent interacts with the environment, selecting actions, receiving rewards, and storing transitions.
+    - At the end of each episode, the agent trains with the collected transitions, and the environment checks if the task is solved.
+
+### 8. Testing Mode
+```python
+if not solved:
+    print("Task is not solved, deploying agent for testing...")
+elif solved:
+    print("Task is solved, deploying agent for testing...")
+observation = env.reset()
+env.episode_score = 0.0
+while True:
+    selected_action, action_prob = agent.work(observation, type_="selectActionMax")
+    observation, _, done, _ = env.step([selected_action])
+    if done:
+        observation = env.reset()
+```
+
+Once training is complete, the agent operates in "testing" mode, continually attempting to balance the pole without exploring alternative actions, allowing it to demonstrate its learned policy.
+
+### 9. Error Message
+The terminal output shows that by the 907th episode, the agent consistently achieves a maximum reward of 196, which is considered solved. However, there are Webots-related errors indicating missing dependencies and declaration issues. These errors can be resolved by following the instructions to update the Webots project to R2023b and adding `EXTERNPROTO` declarations for `TexturedBackground`, `TexturedBackgroundLight`, and `RectangleArena` as suggested in the error message.
+
+### Summary
+This script effectively implements PPO to train an agent to balance a cart-pole system in Webots, using `deepbots` and a structured reward system. The training loop monitors the agent’s performance, adjusting until the environment is considered solved, after which the agent is deployed in test mode.
