@@ -3,79 +3,88 @@
 
 # Train SAC Agent for Ball Balance Control
 
-This example demonstrates how to train a Soft Actor-Critic (SAC) reinforcement learning agent to control a Kinova Gen3 robot arm for a ball-balancing task. 
+This project demonstrates how to train a Soft Actor-Critic (SAC) reinforcement learning agent to control a Kinova Gen3 robot arm to perform a ball-balancing task.
+
+---
+
+## Overview
+
+We aim to teach a Kinova Gen3 robot arm with seven degrees of freedom (DOF) to balance a ping pong ball on a flat plate attached to its gripper. The task focuses on utilizing reinforcement learning (RL) techniques to achieve this challenging objective. Although the robot arm has seven DOF, only the final two joints are used for actuation, enabling the robot to control the pitch and roll of the plate. The other joints remain fixed.
+
+---
+
+## Understanding Reinforcement Learning in This Task
+
+In reinforcement learning, the agent (here, the SAC agent) interacts with the environment (the ball and plate system) to learn a strategy that maximizes the long-term reward. The agent makes decisions (actions) based on the current state (observations) and receives feedback in the form of a reward. Over time, the agent improves its strategy through trial and error.
+
+### The RL Setup in This Project
+
+1. **Agent**: The SAC agent, which uses deep neural networks to approximate the optimal policy.
+2. **Environment**: The Simulink model of the Kinova Gen3 robot, ball, and plate system.
+3. **Observations**: The information the agent receives from the environment to make decisions, including:
+   - Joint angles (represented as sine and cosine values), velocities, and torques.
+   - The ball's position relative to the plate center and its velocity.
+   - The orientation of the plate (represented using quaternions) and its velocity.
+   - Physical parameters like the ball's radius and mass.
+4. **Actions**: The torques applied to the two actuated joints of the robot arm, normalized between -1 and 1.
+5. **Reward Function**: A mathematical expression that provides feedback to the agent on how well it is performing:  
+   ![R_t](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_t) = ![R_ball](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{ball}) - ![R_plate](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{plate}) - ![R_control](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{control})
+
+   - ![R_ball](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{ball}): A positive reward for keeping the ball near the center of the plate.
+   - ![R_plate](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{plate}): A penalty for deviations in plate orientation, ensuring stable control.
+   - ![R_control](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{control}): A penalty for excessive control effort to encourage efficiency.
+
+---
 
 ## Introduction
 
-The task involves a Kinova Gen3 robot arm with seven degrees of freedom (DOF). The goal is to balance a ping pong ball at the center of a flat plate attached to the robot's gripper. Only the final two joints of the robot arm are actuated, enabling motion in the pitch and roll axes, as illustrated below. The other joints are fixed.
+This example uses a Soft Actor-Critic (SAC) agent. SAC is a reinforcement learning algorithm known for its ability to handle continuous action spaces, which is perfect for controlling the torques of the robot's joints. It uses two components:
+- **Critic Networks**: Estimate the value (or expected reward) of the current policy.
+- **Actor Network**: Outputs actions as Gaussian-distributed random variables, encouraging exploration.
 
-### Simulink Model
+---
 
-The Simulink® model contains a Kinova Ball Balance subsystem connected to an RL Agent block. The agent applies an action to the robot subsystem and receives the resulting observation, reward, and is-done signals.
+### Simulink Model of the Environment
 
+The Simulink® model represents the physical system using Simscape™ Multibody™ and connects it to the RL agent. The agent applies actions (torques) and receives:
+- **Observations**: Details about the ball and plate’s current state.
+- **Reward**: Feedback on performance.
+- **Is-Done Signal**: Indicates when the episode (simulation) ends, for example, when the ball falls off the plate.
+
+You can explore the model with:
 ```matlab
 open_system("rlKinovaBallBalance")
-```
-
-You can explore the Kinova Ball Balance subsystem here:
-
-```matlab
 open_system("rlKinovaBallBalance/Kinova Ball Balance")
 ```
 
-### System Components
+---
 
-- The physical components (manipulator, ball, and plate) are modeled using Simscape™ Multibody™.
-- The plate is attached to the robot's end effector.
-- The ball can move freely in six degrees of freedom.
-- The Spatial Contact Force block models the contact forces between the ball and the plate.
-- The control inputs to the robot are torque signals for the actuated joints.
+## System Components and Physical Modeling
 
-To view a 3D animation of the manipulator, set the Visualization parameter to *3D Mesh* in the Mechanics Explorer. If you do not have the Robotics System Toolbox Robot Library Data support package, set the Visualization parameter to *None*. You can install the package using Add-On Explorer. 
+- **Manipulator, Ball, and Plate**: Simulated using Simscape™ Multibody™ to reflect real-world physics.
+- **Contact Forces**: Modeled with the Spatial Contact Force block to capture interactions between the ball and the plate.
+- **Visualization**: Use the Mechanics Explorer for a 3D animation. Adjust visualization settings as needed, especially if you do not have the Robotics System Toolbox Robot Library Data support package.
 
-### Setting Parameters
+### Initialization and Parameter Setting
 
-Run the `kinova_params` script to initialize parameters for the example. If you have the required support package installed, this script will also add the necessary mesh files to your MATLAB® path.
-
+Run this script to configure parameters and add necessary files:
 ```matlab
 kinova_params
 ```
 
-## Defining the Environment
+---
 
-The ball-balancing environment is defined with:
+## Reinforcement Learning Environment
 
-- **Observations**: A 22-element vector containing:
-  - Joint positions (sine and cosine of angles) and velocities
-  - Ball positions (x and y distances from the plate center) and velocities
-  - Plate orientation (quaternions) and velocities
-  - Joint torques, ball radius, and mass
-- **Actions**: Normalized torque values for the two actuated joints
-- **Sample time**: `Ts = 0.01`, **Simulation time**: `Tf = 10`
+### Observations and Actions
 
-The simulation terminates when the ball falls off the plate.
+- **Observations**: A vector of 22 elements that provide details about the ball and plate system.
+- **Actions**: Torques applied to the two actuated joints, constrained between -1 and 1.
 
-### Reward Function
-
-The reward function \( R_t \) at time step \( t \) is defined as:
-
-![Reward Function](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_t&space;=&space;R_{ball}&space;-&space;R_{plate}&space;-&space;R_{control})
-
-where:
-
-- ![Reward for Ball](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{ball}): Reward for the ball moving closer to the plate center
-- ![Penalty for Plate](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{plate}): Penalty for plate orientation
-- ![Control Effort Penalty](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{control}): Penalty for control effort
-- ![Angles](https://latex.codecogs.com/png.image?\dpi{120}\color{White}\phi,&space;\theta,&space;\psi): Plate roll, pitch, and yaw angles in radians
-- ![Joint Torques](https://latex.codecogs.com/png.image?\dpi{120}\color{White}\tau_1,&space;\tau_2): Joint torques
-
-## Setting Up the Environment Interface
-
-Create the observation and action specifications:
-
+Define these specifications:
 ```matlab
-nObs = 22; % Number of observation dimensions
-nAct = 2;  % Number of action dimensions
+nObs = 22; % Observation dimensions
+nAct = 2;  % Action dimensions
 
 obsInfo = rlNumericSpec([nObs 1]);
 actInfo = rlNumericSpec([nAct 1]);
@@ -83,8 +92,9 @@ actInfo.LowerLimit = -1;
 actInfo.UpperLimit = 1;
 ```
 
-Create the Simulink environment interface:
+### Creating the Environment Interface
 
+Link the Simulink model to the RL environment:
 ```matlab
 mdl = "rlKinovaBallBalance";
 blk = mdl + "/RL Agent";
@@ -92,14 +102,13 @@ env = rlSimulinkEnv(mdl, blk, obsInfo, actInfo);
 env.ResetFcn = @kinovaResetFcn;
 ```
 
-## Creating the Agent
+---
 
-The SAC agent uses two Q-value function approximators (critics) and a continuous Gaussian actor.
+## Designing the SAC Agent
 
 ### Critic Neural Network
 
 The critic network estimates the value of the policy:
-
 ```matlab
 observationPath = [
     featureInputLayer(nObs, Name="observation")
@@ -123,7 +132,6 @@ criticNet = connectLayers(criticNet, "action", "concat/in2");
 ### Actor Neural Network
 
 The actor network outputs a Gaussian-distributed action:
-
 ```matlab
 commonPath = [
     featureInputLayer(nObs, Name="observation")
@@ -151,8 +159,9 @@ actorNet = connectLayers(actorNet, "commonPath", "meanFC/in");
 actorNet = connectLayers(actorNet, "commonPath", "stdFC/in");
 ```
 
-### Creating the SAC Agent
+### SAC Agent Configuration
 
+Set up the agent options and initialize the SAC agent:
 ```matlab
 agentOpts = rlSACAgentOptions( ...
     SampleTime = Ts, ...
@@ -161,18 +170,15 @@ agentOpts = rlSACAgentOptions( ...
     MiniBatchSize = 256, ...
     NumWarmStartSteps = 256 * 10, ...
     DiscountFactor = 0.99);
-```
 
-Initialize and create the agent:
-
-```matlab
 agent = rlSACAgent(actor, [critic1, critic2], agentOpts);
 ```
+
+---
 
 ## Training the Agent
 
 Configure the training options:
-
 ```matlab
 trainOpts = rlTrainingOptions( ...
     MaxEpisodes = 6000, ...
@@ -185,8 +191,7 @@ trainOpts = rlTrainingOptions( ...
     UseParallel = false);
 ```
 
-To train the agent:
-
+To start or skip training:
 ```matlab
 doTraining = false;
 if doTraining
@@ -197,10 +202,11 @@ else
 end
 ```
 
-## Simulating the Trained Agent
+---
 
-Set initial conditions and run the simulation:
+## Simulating and Visualizing the Trained Agent
 
+Set the conditions and run a simulation:
 ```matlab
 userSpecifiedConditions = true;
 simOpts = rlSimulationOptions(MaxSteps = floor(Tf/Ts));
@@ -210,14 +216,16 @@ agent.UseExplorationPolicy = false;
 experiences = sim(agent, env, simOpts);
 ```
 
-Visualize the ball trajectory:
-
+Visualize the ball's trajectory:
 ```matlab
 fig = animatedPath(experiences);
 ```
 
-## Data Logging Functions
+---
 
+## Data Logging
+
+Custom functions for logging agent data:
 ```matlab
 function dataToLog = logAgentLearnData(data)
     dataToLog.ActorLoss = data.ActorLoss;
@@ -231,6 +239,17 @@ function dataToLog = logEpisodeData(data, doViz)
     end
 end
 ```
+
+### What is Happening in Reinforcement Learning Terms
+
+1. **Exploration vs. Exploitation**: The SAC agent uses Gaussian-distributed actions to explore different torque values. Over time, the agent learns which actions yield the highest rewards and adjusts its strategy to exploit this knowledge.
+2. **Value Estimation**: The critic networks help the agent understand the value of being in a particular state and taking a specific action. This understanding is crucial for policy improvement.
+3. **
+
+Continuous Action Space**: Unlike discrete RL problems, controlling torques requires dealing with continuous values. SAC is well-suited for this because it handles continuous action spaces efficiently.
+4. **Training Strategy**: The agent learns through thousands of episodes, using a balance between short-term exploration and long-term reward optimization. 
+
+By the end of training, the SAC agent should be proficient at balancing the ball by adjusting the plate's orientation using minimal and efficient control inputs.
 
 ---
 
