@@ -1,6 +1,7 @@
 # Hexapod Robot Controlled via Bluetooth Gamepad
 
 ![hexapod](./demo%201.png)
+
 This project involves the implementation of a hexapod robot simulation controlled through a Bluetooth gamepad. The hexapod employs a biologically inspired gait for forward, backward, and turning movements. The project is designed and tested using the Webots robotics simulation platform and a Python script integrating Pygame for gamepad control.
 
 ---
