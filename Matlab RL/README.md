@@ -244,9 +244,7 @@ end
 
 1. **Exploration vs. Exploitation**: The SAC agent uses Gaussian-distributed actions to explore different torque values. Over time, the agent learns which actions yield the highest rewards and adjusts its strategy to exploit this knowledge.
 2. **Value Estimation**: The critic networks help the agent understand the value of being in a particular state and taking a specific action. This understanding is crucial for policy improvement.
-3. **
-
-Continuous Action Space**: Unlike discrete RL problems, controlling torques requires dealing with continuous values. SAC is well-suited for this because it handles continuous action spaces efficiently.
+3. **Continuous Action Space**: Unlike discrete RL problems, controlling torques requires dealing with continuous values. SAC is well-suited for this because it handles continuous action spaces efficiently.
 4. **Training Strategy**: The agent learns through thousands of episodes, using a balance between short-term exploration and long-term reward optimization. 
 
 By the end of training, the SAC agent should be proficient at balancing the ball by adjusting the plate's orientation using minimal and efficient control inputs.
