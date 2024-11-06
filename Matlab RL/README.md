@@ -63,11 +63,11 @@ The reward function \( R_t \) at time step \( t \) is defined as:
 
 where:
 
-- \( R_{ball} \): Reward for the ball moving closer to the plate center
-- \( R_{plate} \): Penalty for plate orientation
-- \( R_{control} \): Penalty for control effort
-- \( \phi, \theta, \psi \): Plate roll, pitch, and yaw angles in radians
-- \( \tau_1, \tau_2 \): Joint torques
+- ![Reward for Ball](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{ball}): Reward for the ball moving closer to the plate center
+- ![Penalty for Plate](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{plate}): Penalty for plate orientation
+- ![Control Effort Penalty](https://latex.codecogs.com/png.image?\dpi{120}\color{White}R_{control}): Penalty for control effort
+- ![Angles](https://latex.codecogs.com/png.image?\dpi{120}\color{White}\phi,&space;\theta,&space;\psi): Plate roll, pitch, and yaw angles in radians
+- ![Joint Torques](https://latex.codecogs.com/png.image?\dpi{120}\color{White}\tau_1,&space;\tau_2): Joint torques
 
 ## Setting Up the Environment Interface
 
