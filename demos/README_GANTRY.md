@@ -1,5 +1,8 @@
 # Gantry Robot Control Using Bluetooth Gamepad
-![gantry](./demo%202.png)
+
+<p align="center">
+  <img src="./demo%202.png" alt="gantry">
+</p>
 
 This project demonstrates controlling a gantry robot using a Bluetooth gamepad through Webots and Python. The gantry robot is designed to move along rails, lift objects, and manipulate a turret and gripper. The gamepad inputs control various motors and joints, enabling complex robot movements.
 
