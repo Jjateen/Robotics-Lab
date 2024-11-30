@@ -1,6 +1,10 @@
-![Task2](./Task%202.png)
+### Task 2: Build a Robot Model in Webots
 
-The code you provided is a reinforcement learning (RL) controller for a cart-pole balancing robot in Webots, leveraging Proximal Policy Optimization (PPO) for training an agent. Here’s a detailed breakdown of the code:
+[Task 2 World File](./worlds/CartPoleWorld.wbt)
+
+<p align="center">
+    <img src="./Task%202.png" alt="Task 2" width="500">
+</p>
 
 ### 1. Imports and Environment Setup
 ```python
