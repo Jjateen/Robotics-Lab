@@ -1,5 +1,4 @@
-### Task 1: Build a Robot Model in Webots
-
+### Task 1: RL from Scratch for Obstacle Avoidance
 [Task 1 World File](./worlds/my_world.wbt)  
 
 <p align="center">
