@@ -1,4 +1,4 @@
-### Task 2: Build a Robot Model in Webots
+### Task 2: CartPole Ballance using Deepbots
 
 [Task 2 World File](./worlds/CartPoleWorld.wbt)
 
