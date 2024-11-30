@@ -1,11 +1,12 @@
-## About
+## About - Robotics using RVC Toolbox
 
 This repository contains a copy of Peter Corke's MATLAB Robotics Toolbox. The scripts within are utilized for various lab tasks.
 
-![Task5a](./Task%205a.png)
-![Task5b](./Task%205b.png)
-![Task5c](./Task%205c.png)
-
+<p align="center">
+    <img src="./Task%205b.png" alt="Task 5b" width="500">
+    <img src="./Task%205c.png" alt="Task 5c" width="401.5">
+    <img src="./Task%205a.png" alt="Task 5a" width="600">
+</p>
 This MATLAB script simulates a PUMA 560 robotic arm writing the letter "J" by following a series of predefined path points. It requires the Robotics Vision Toolbox (RVC Toolbox), so before running the script, initialize the toolbox by typing `startup_rvc` in the command window.
 
 ### 1. Initial Setup
