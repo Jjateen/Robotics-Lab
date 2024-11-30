@@ -1,7 +1,9 @@
 # Robotics Course @ IIITN
 
 This repository contains all work completed during the Robotics course at IIITN. Throughout the course, various tasks were undertaken, exploring different aspects of robotics, including reinforcement learning, robot modeling, object detection, trajectory planning/analysis, and SLAM (with Webots).
-
+<p align="center">
+  <img src="./cover.png" alt="cover" width="1100">
+</p>
 Note: While work for Task 1 and Task 2 involved experimenting with Reinforcement Learning in Webots, the actual objectives were to create a custom environment for Task 1 and to model a 4WD robot for Task 2. Additional tasks extended to robot modeling, vision systems, and manipulator control.
 
 ### [Task 1: RL from Scratch for Obstacle Avoidance](./Task%201)
