@@ -3,7 +3,7 @@
 [Task 1 World File](./worlds/my_world.wbt)  
 
 <p align="center">
-  <img src="./Task%201.png" alt="Task 1">
+  <img src="./Task%201.png" alt="Task 1" width="500">
 </p>
 
 In this task, we focus on building a robot model in Webots and training a Reinforcement Learning (RL) agent from scratch. The objective is for the robot to navigate through an environment while avoiding obstacles and reaching a predefined goal.
