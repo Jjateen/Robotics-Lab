@@ -1,4 +1,4 @@
-# Robotics Course @ IIITN
+# Robotics Course - ECL442 @ IIITN
 
 This repository contains all work completed during the Robotics course at IIITN. Throughout the course, various tasks were undertaken, exploring different aspects of robotics, including reinforcement learning, robot modeling, object detection, trajectory planning/analysis, and SLAM (with Webots).
 <p align="center">
