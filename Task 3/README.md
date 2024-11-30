@@ -3,5 +3,5 @@
 [Task 3 World File](./worlds/lab3.wbt)  
 
 <p align="center">
-    <img src="./Task%203.png" alt="Task 2" width="500">
+    <img src="./Task%203.png" alt="Task 3" width="500">
 </p>
