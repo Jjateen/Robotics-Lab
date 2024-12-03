@@ -1,3 +1,6 @@
 [submodule "webots_ros2"]
 	path = webots_ros2
 	url = https://github.com/Jjateen/webots_ros2.git
+[submodule "demos/training_spot"]
+	path = demos/training_spot
+	url = https://github.com/chngdickson/training_spot.git
